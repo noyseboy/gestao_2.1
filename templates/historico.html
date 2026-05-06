@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}CFC Gestão - Histórico de Concluídos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/historico.css') }}">
+{% endblock %}
+
+{% block content %}
+{# Flash messages centralizadas (override do base para este template) #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-center-wrapper">
+            {% for category, message in messages %}
+                <div class="flash-center alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    <div class="d-flex align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-2 w-100 justify-content-center">
+                            {% if category == 'success' %}<i class="bi bi-check-circle-fill fs-5"></i>
+                            {% elif category == 'warning' %}<i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                            {% else %}<i class="bi bi-x-circle-fill fs-5"></i>{% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h2 class="fw-bold text-dark m-0">Histórico de Conclusão</h2>
+        <p class="text-muted">Alunos que já finalizaram todas as etapas.</p>
+    </div>
+    <form method="GET" action="{{ url_for('alunos.historico') }}" class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="input-group search-input-group">
+            <input type="text" name="q" class="form-control" placeholder="Nome, CPF, processo ou categoria" value="{{ busca or '' }}" autocomplete="off">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+        </div>
+        {% if busca %}
+            <a href="{{ url_for('alunos.historico') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-circle"></i> Limpar</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="tabelaHistorico">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 28%;">Nome / CPF</th>
+                    <th style="width: 12%; text-align: center;">Origem</th>
+                    <th style="width: 18%; text-align: center;">Processo / Categoria</th>
+                    <th style="width: 22%;">Treinos Realizados</th>
+                    <th style="width: 10%; text-align: center;">Data Finalização</th>
+                    <th style="width: 10%; text-align: center;">Valor (R$)</th>
+                    <th style="width: 8%; text-align: center;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for aluno in alunos %}
+                <tr>
+                    <td>
+                        <div class="fw-bold text-dark text-nowrap">{{ aluno.nome }}</div>
+                        <small class="text-muted">CPF: {{ aluno.cpf }}</small>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge badge-origem {{ 'bg-info text-dark' if aluno.origem == 'Detran' else 'bg-light text-secondary border' }}">{{ aluno.origem or 'Auto Escola' }}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="tipo-processo-label">{{ aluno.tipo_processo or '1ª Habilitação' }}</span>
+                        <span class="badge badge-tipo">{{ aluno.categoria or '-' }}</span>
+                    </td>
+                    <td class="lista-treinos">
+                        {% if aluno.aulas %}
+                            {% for aula in aluno.aulas %}
+                                <div class="treino-item">
+                                    <div><strong>Data:</strong> {{ aula.data_aula.strftime('%d/%m/%Y') }}</div>
+                                    <div><strong>Horário:</strong> {{ aula.horario_aula }}</div>
+                                    <div><strong>Veículo:</strong> {{ aula.veiculo }}</div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">Nenhum treino registrado</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="text-dark fw-semibold">
+                            <i class="bi bi-calendar-check text-success me-1"></i>
+                            {{ aluno.data_conclusao.strftime('%d/%m/%Y') if aluno.data_conclusao else '--/--/----' }}
+                        </div>
+                    </td>
+                    <td class="text-center text-valor text-nowrap">
+                        R$ {{ "{:,.2f}".format(aluno.valor_total or 0).replace(",","X").replace(".",",").replace("X",".") }}
+                    </td>
+                    <td class="text-center">
+                        <form action="{{ url_for('alunos.reabrir_aluno', aluno_id=aluno.id, q=busca) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-warning btn-sm px-3" onclick="return confirm('Deseja reabrir este aluno?');">
+                                <i class="bi bi-arrow-counterclockwise"></i> Reabrir
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                        <p class="mt-2">Nenhum aluno concluído encontrado{{ ' para "' + busca + '"' if busca else '' }}.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="mt-2 text-end text-muted small"><strong>Total de alunos finalizados:</strong> {{ alunos|length }}</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/historico.js') }}"></script>
+{% endblock %}

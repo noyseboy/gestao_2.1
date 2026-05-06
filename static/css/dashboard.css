@@ -1,0 +1,54 @@
+body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+.table-container { background: white; border-radius: 15px; padding: 18px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+.modal-content { border: none; border-radius: 20px; }
+.nav-link-custom { color: rgba(255,255,255,0.8); text-decoration: none; margin-right: 15px; transition: 0.3s; }
+.nav-link-custom:hover { color: white; }
+.nav-link-active { color: white; font-weight: bold; border-bottom: 2px solid #6c5ce7; }
+.search-box { max-width: 400px; border-radius: 10px; border: 1px solid #dee2e6; padding-left: 40px; }
+.search-container { position: relative; }
+.search-container i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d; }
+.icon-obs { color: #f1c40f; cursor: help; margin-left: 5px; font-size: 0.95rem; vertical-align: middle; }
+
+/* Tabela */
+#tabelaAlunos { margin-bottom: 0; }
+#tabelaAlunos thead th { font-size: 0.78rem; font-weight: 700; color: #6c757d; text-transform: uppercase; letter-spacing: 0.4px; padding: 12px 10px; vertical-align: middle; white-space: nowrap; }
+#tabelaAlunos tbody td { padding: 12px 10px; vertical-align: middle; font-size: 0.92rem; }
+#tabelaAlunos tbody tr { border-bottom: 1px solid #eef1f4; }
+#tabelaAlunos tbody tr:last-child { border-bottom: none; }
+#tabelaAlunos th:nth-child(1), #tabelaAlunos td:nth-child(1) { width: 25%; }
+#tabelaAlunos th:nth-child(2), #tabelaAlunos td:nth-child(2) { width: 8%;  text-align: center; }
+#tabelaAlunos th:nth-child(3), #tabelaAlunos td:nth-child(3) { width: 12%; text-align: center; }
+#tabelaAlunos th:nth-child(4), #tabelaAlunos td:nth-child(4) { width: 16%; text-align: center; }
+#tabelaAlunos th:nth-child(5), #tabelaAlunos td:nth-child(5) { width: 10%; text-align: center; }
+#tabelaAlunos th:nth-child(6), #tabelaAlunos td:nth-child(6) { width: 10%; text-align: center; }
+#tabelaAlunos th:nth-child(7), #tabelaAlunos td:nth-child(7) { width: 10%; text-align: center; }
+#tabelaAlunos th:nth-child(8), #tabelaAlunos td:nth-child(8) { width: 12%; text-align: center; }
+
+/* Células */
+.nome-aluno { font-size: 0.95rem; font-weight: 700; line-height: 1.2; margin-bottom: 4px; }
+.cpf-aluno { font-size: 0.78rem; line-height: 1.2; }
+.contato-info { font-size: 0.78rem; color: #6c757d; font-weight: 500; line-height: 1.2; margin-top: 2px; }
+.badge-tipo { background-color: #6c5ce7; color: white; padding: 6px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; display: inline-block; min-width: 48px; text-align: center; }
+.badge-origem { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; padding: 5px 8px; border-radius: 999px; }
+.tipo-processo-label { font-size: 0.72rem; color: #6c757d; font-weight: 600; display: block; margin-bottom: 4px; line-height: 1.2; }
+.text-valor { color: #27ae60; font-weight: 700; font-size: 0.92rem; white-space: nowrap; }
+.btn-action { padding: 0.30rem 0.45rem; min-width: 32px; min-height: 32px; display: inline-flex; align-items: center; justify-content: center; }
+.data-inscricao-badge { font-size: 0.78rem; font-weight: 600; color: #495057; white-space: nowrap; }
+
+/* Barras de progresso de aulas */
+.aulas-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+.progress-container { margin-bottom: 0; width: 100%; max-width: 170px; }
+.progress-aula { height: 7px; border-radius: 4px; background-color: #e9ecef; overflow: hidden; }
+.progress-bar { height: 100%; transition: width 0.6s ease; }
+.progress-bar-alta  { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+.progress-bar-media { background: linear-gradient(90deg, #f39c12, #e67e22); }
+.progress-bar-baixa { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+.progress-bar-zero  { background-color: #dee2e6; }
+.progress-label { font-size: 0.72rem; font-weight: 600; margin-top: 4px; text-align: center; color: #495057; line-height: 1.2; }
+.sem-horas { font-size: 0.78rem; color: #6c757d; text-align: center; display: inline-block; }
+
+@media (max-width: 992px) {
+    #tabelaAlunos thead th { font-size: 0.72rem; }
+    #tabelaAlunos tbody td { font-size: 0.88rem; }
+    .nome-aluno { font-size: 0.90rem; }
+}
