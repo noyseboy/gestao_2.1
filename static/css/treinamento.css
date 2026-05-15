@@ -1,0 +1,36 @@
+:root { --primary-dark: #2c3e50; --accent-color: #6c5ce7; }
+
+.section-title {
+    background: white; padding: 1rem; border-radius: 12px;
+    margin-bottom: 1.5rem; border-left: 6px solid var(--accent-color);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    display: flex; align-items: center;
+}
+.card-horario {
+    background: white; border-radius: 12px; margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);
+    transition: transform 0.2s; overflow: hidden;
+}
+.time-box {
+    background: var(--primary-dark); color: white;
+    padding: 12px; min-width: 100px; text-align: center;
+    font-size: 0.8rem; font-weight: 600;
+}
+.aluno-select {
+    border: none; font-size: 0.9rem; font-weight: 600;
+    background-color: transparent; cursor: pointer; width: 100%;
+}
+.aluno-select:disabled {
+    background: none; color: #2d3436;
+    opacity: 1; cursor: default; appearance: none;
+}
+.area-controle {
+    background-color: #fcfcfd; border-top: 1px dashed #eee;
+    padding: 12px; align-items: center; gap: 10px;
+}
+.input-data-aula { max-width: 130px; font-size: 0.8rem; }
+.checkbox-group { display: flex; gap: 4px; flex-wrap: wrap; }
+
+@media (max-width: 576px) {
+    .time-box { min-width: 80px; font-size: 0.75rem; padding: 8px; }
+}
