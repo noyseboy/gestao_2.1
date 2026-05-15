@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}CFC Gestão - Grade de Treinamento{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/treinamento.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    {% set horarios = ['07:10 - 08:00', '08:10 - 09:00', '09:10 - 10:00', '12:20 - 13:10', '13:20 - 14:10', '14:20 - 15:10', '15:20 - 16:00'] %}
+
+    {% for categoria in [('GOL', 'primary', 'car-front-fill'), ('KIWD', 'info', 'car-front-fill'), ('MOTO', 'warning', 'bicycle')] %}
+    <div class="col-xl-4 col-md-6">
+        <div class="section-title" style="border-left-color: var(--bs-{{ categoria.1 }});">
+            <i class="bi bi-{{ categoria.2 }} fs-4 me-3 text-{{ categoria.1 }}"></i>
+            <h5 class="m-0 fw-bold text-uppercase">{{ categoria.0 }}</h5>
+        </div>
+
+        {% for hora in horarios %}
+        <div class="card-horario">
+            <form action="{{ url_for('treinamento.fixar_aluno_grade') }}" method="POST">
+                <input type="hidden" name="horario" value="{{ hora }}">
+                <input type="hidden" name="veiculo" value="{{ categoria.0 }}">
+                <div class="d-flex w-100 align-items-center">
+                    <div class="time-box">{{ hora.split(' - ')[0] }}<br>{{ hora.split(' - ')[1] }}</div>
+                    <div class="p-2 flex-grow-1 d-flex align-items-center justify-content-between">
+                        <select name="aluno_id" class="form-select aluno-select"
+                                onchange="gerarControle(this); this.closest('form').submit()"
+                                {% if session.get('role') == 'instrutor' %} disabled {% endif %}>
+                            <option value="" data-horas="0" data-realizadas="0">Vaga Livre</option>
+                            {% for aluno in alunos %}
+                                {% if aluno.em_treinamento %}
+                                    {% set eh_cat_correta = false %}
+                                    {% if categoria.0 in ['GOL', 'KIWD'] and 'B' in aluno.categoria %}{% set eh_cat_correta = true %}{% endif %}
+                                    {% if categoria.0 == 'MOTO' and 'A' in aluno.categoria %}{% set eh_cat_correta = true %}{% endif %}
+                                    {% if eh_cat_correta %}
+                                        {% set h_total = aluno.horas_b if categoria.0 != 'MOTO' else aluno.horas_a %}
+                                        {% set h_real  = aluno.aulas_carro_realizadas if categoria.0 != 'MOTO' else aluno.aulas_moto_realizadas %}
+                                        <option value="{{ aluno.id }}" data-horas="{{ h_total }}" data-realizadas="{{ h_real }}"
+                                            {% if mapa.get(hora ~ '-' ~ categoria.0) == aluno.id %} selected {% endif %}>
+                                            {{ aluno.nome[:25] }}
+                                        </option>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        {% if mapa.get(hora ~ '-' ~ categoria.0) and session.get('role') == 'admin' %}
+                        <button type="button" class="btn btn-link text-danger p-0 border-0 ms-2" onclick="liberarVaga(this)">
+                            <i class="bi bi-x-circle-fill fs-5"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+
+            {% set aluno_id_atual = mapa.get(hora ~ '-' ~ categoria.0) %}
+            <form action="{{ url_for('treinamento.salvar_treinamento') }}" method="POST">
+                <input type="hidden" name="horario" value="{{ hora }}">
+                <input type="hidden" name="veiculo" value="{{ categoria.0 }}">
+                <input type="hidden" name="aluno_id" value="{{ aluno_id_atual }}">
+                <div class="area-controle d-flex flex-wrap" {% if not aluno_id_atual %} style="display: none !important;" {% endif %}>
+                    <div class="checkbox-group mb-2 mb-sm-0"></div>
+                    <div class="ms-auto d-flex gap-2">
+                        <input type="date" name="data_aula" class="form-control form-control-sm input-data-aula" value="{{ now_date }}">
+                        <button type="submit" class="btn btn-sm btn-success px-3"><i class="bi bi-check-lg"></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/treinamento.js') }}"></script>
+{% endblock %}

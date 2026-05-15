@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+
+{% block title %}CFC Gestão - Painel Principal{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+
+{# ── Cabeçalho ── #}
+<div class="dash-header mb-4">
+    <div class="dash-header-left">
+        <h1 class="dash-title">Alunos em Andamento</h1>
+        <p class="dash-sub">{{ alunos|length }} aluno{{ 's' if alunos|length != 1 }} ativos no momento</p>
+    </div>
+    <div class="dash-header-right">
+        <a href="{{ url_for('financeiro.relatorio_mensal') }}" class="btn-dash btn-dash-outline">
+            <i class="bi bi-calendar3"></i> Relatório Mensal
+        </a>
+        <button type="button" class="btn-dash btn-dash-primary" data-bs-toggle="modal" data-bs-target="#modalNovoAluno">
+            <i class="bi bi-plus-lg"></i> Novo Aluno
+        </button>
+    </div>
+</div>
+
+{# ── Alerta de parcelas em atraso ── #}
+{% if alunos_inadimplentes > 0 %}
+<div class="alerta-atraso mb-4">
+    <div class="alerta-atraso-esq">
+        <div class="alerta-icone">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <div class="alerta-texto">
+            <strong>
+                {{ alunos_inadimplentes }} aluno{{ 's' if alunos_inadimplentes != 1 }}
+                com parcela{{ 's' if alunos_inadimplentes != 1 }} em atraso
+            </strong>
+            <span>Total pendente: <b>R$ {{ formatar_moeda(valor_total_atraso) }}</b></span>
+        </div>
+    </div>
+    <a href="{{ url_for('parcelas.gestao_parcelas', status='atrasado') }}" class="alerta-link">
+        Ver parcelas <i class="bi bi-arrow-right"></i>
+    </a>
+</div>
+{% endif %}
+
+{# ── Barra de busca e filtros ── #}
+<div class="dash-toolbar mb-4">
+    <div class="dash-search-wrap">
+        <i class="bi bi-search dash-search-icon"></i>
+        <input type="text" id="inputBusca" class="dash-search-input" placeholder="Buscar por nome ou CPF...">
+    </div>
+    <div class="dash-filtros">
+        <button class="filtro-btn active" data-filtro="todos">Todos</button>
+        <button class="filtro-btn" data-filtro="treinando">
+            <i class="bi bi-person-video3"></i> Treinando
+        </button>
+        <button class="filtro-btn" data-filtro="aguardando">
+            <i class="bi bi-clock"></i> Aguardando
+        </button>
+    </div>
+</div>
+
+{# ── Lista de alunos (tabela) ── #}
+<div class="alunos-lista-wrap" id="alunosGrid">
+    <table class="table alunos-tabela align-middle w-100">
+        <thead>
+            <tr>
+                <th>Aluno</th>
+                <th class="text-center">Origem</th>
+                <th class="text-center">Processo</th>
+                <th class="text-center">Categoria</th>
+                <th class="text-center">Inscrição</th>
+                <th class="text-center">Prova</th>
+                <th class="text-center">Progresso</th>
+                <th class="text-center">Status</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for aluno in alunos %}
+            {% set progresso_a = ((aluno.aulas_a_realizadas or 0) / (aluno.horas_a or 1) * 100) if aluno.horas_a else 0
+            %}
+            {% set progresso_b = ((aluno.aulas_b_realizadas or 0) / (aluno.horas_b or 1) * 100) if aluno.horas_b else 0
+            %}
+
+            <tr class="aluno-card linha-aluno {{ 'row-treinando' if aluno.em_treinamento else '' }}"
+                data-nome="{{ aluno.nome|lower }}" data-cpf="{{ aluno.cpf }}"
+                data-status="{{ 'treinando' if aluno.em_treinamento else 'aguardando' }}">
+
+                {# Nome + CPF + contato #}
+                <td>
+                    <div class="list-nome nome-aluno">
+                        {{ aluno.nome }}
+                        {% if aluno.observacoes %}
+                        <i class="bi bi-sticky-fill icon-obs ms-1" data-bs-toggle="tooltip"
+                            title="{{ aluno.observacoes }}"></i>
+                        {% endif %}
+                    </div>
+                    <div class="list-cpf cpf-aluno">{{ aluno.cpf }}</div>
+                    {% if aluno.contato %}
+                    <div class="list-contato contato-info">
+                        <i class="bi bi-whatsapp text-success"></i> {{ aluno.contato }}
+                    </div>
+                    {% endif %}
+                </td>
+
+                {# Origem #}
+                <td class="text-center">
+                    <span class="badge-origem-card {{ 'origem-detran' if aluno.origem and 'detran' in aluno.origem|lower else 'origem-ae' }}">
+                        {% if aluno.origem and 'detran' in aluno.origem|lower %}
+                        <i class="bi bi-building-check"></i>
+                        {% else %}
+                        <i class="bi bi-car-front"></i>
+                        {% endif %}
+                        {{ aluno.origem or 'Auto Escola' }}
+                    </span>
+                </td>
+
+                {# Processo #}
+                <td class="text-center">
+                    <div class="list-processo tipo-processo-label">{{ aluno.tipo_processo or '1ª Habilitação' }}</div>
+                </td>
+
+                {# Categoria #}
+                <td class="text-center">
+                    <span class="badge-cat-card">{{ aluno.categoria }}</span>
+                </td>
+
+                {# Data inscrição #}
+                <td class="text-center">
+                    <span class="list-data data-inscricao-badge">
+                        {% if aluno.data_inscricao %}
+                        <i class="bi bi-calendar-check"></i> {{ aluno.data_inscricao.strftime('%d/%m/%Y') }}
+                        {% else %}—{% endif %}
+                    </span>
+                </td>
+
+                {# Data prova #}
+                <td class="text-center">
+                    <span class="list-data {{ 'prova-definida' if aluno.data_prova else 'prova-indefinida' }}">
+                        {% if aluno.data_prova %}
+                        <i class="bi bi-calendar-event"></i> {{ aluno.data_prova.strftime('%d/%m/%Y') }}
+                        {% else %}—{% endif %}
+                    </span>
+                </td>
+
+                {# Progresso mini #}
+                <td class="text-center" style="min-width: 120px;">
+                    {% if aluno.horas_a %}
+                    <div class="mini-prog-wrap">
+                        <div class="mini-prog-label"><i class="bi bi-bicycle"></i> {{ aluno.aulas_a_realizadas or 0
+                            }}/{{ aluno.horas_a }}</div>
+                        <div class="prog-track" style="height:4px;">
+                            <div class="prog-fill {% if progresso_a >= 80 %}fill-alta{% elif progresso_a >= 50 %}fill-media{% elif progresso_a > 0 %}fill-baixa{% else %}fill-zero{% endif %}"
+                                style="width: {{ [progresso_a, 100]|min }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if aluno.horas_b %}
+                    <div class="mini-prog-wrap mt-1">
+                        <div class="mini-prog-label"><i class="bi bi-car-front-fill"></i> {{ aluno.aulas_b_realizadas or
+                            0 }}/{{ aluno.horas_b }}</div>
+                        <div class="prog-track" style="height:4px;">
+                            <div class="prog-fill {% if progresso_b >= 80 %}fill-alta{% elif progresso_b >= 50 %}fill-media{% elif progresso_b > 0 %}fill-baixa{% else %}fill-zero{% endif %}"
+                                style="width: {{ [progresso_b, 100]|min }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if not aluno.horas_a and not aluno.horas_b %}
+                    <span class="text-muted" style="font-size:0.75rem;">—</span>
+                    {% endif %}
+                </td>
+
+                {# Status badge #}
+                <td class="text-center">
+                    {% if aluno.em_treinamento %}
+                    <span class="list-status-badge status-treinando"><i class="bi bi-person-video3"></i>
+                        Treinando</span>
+                    {% else %}
+                    <span class="list-status-badge status-aguardando"><i class="bi bi-clock"></i> Aguardando</span>
+                    {% endif %}
+                </td>
+
+                {# Ações #}
+                <td class="text-center" style="white-space: nowrap;">
+                    <div class="d-flex gap-1 justify-content-center flex-nowrap">
+                        <a href="{{ url_for('alunos.perfil_aluno', id=aluno.id) }}" class="acao-btn acao-perfil"
+                            title="Ver Perfil">
+                            <i class="bi bi-person-lines-fill"></i>
+                        </a>
+                        <form action="{{ url_for('alunos.treinamento_aluno', id=aluno.id) }}" method="POST"
+                            style="display:inline;">
+                            <button type="submit"
+                                class="acao-btn {{ 'acao-treinando' if aluno.em_treinamento else 'acao-treino' }}"
+                                title="{{ 'Parar treinamento' if aluno.em_treinamento else 'Iniciar treinamento' }}">
+                                <i
+                                    class="bi {{ 'bi-person-video3' if aluno.em_treinamento else 'bi-play-circle' }}"></i>
+                            </button>
+                        </form>
+                        <button type="button" class="acao-btn acao-editar" data-bs-toggle="modal"
+                            data-bs-target="#modalEditar{{ aluno.id }}" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <form action="{{ url_for('alunos.concluir_aluno', id=aluno.id) }}" method="POST"
+                            style="display:inline;">
+                            <button type="submit" class="acao-btn acao-concluir" title="Concluir processo">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </button>
+                        </form>
+                        <button type="button" class="acao-btn acao-excluir" data-bs-toggle="modal"
+                            data-bs-target="#modalExcluir{{ aluno.id }}" title="Excluir aluno">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+
+            {# Modal Editar #}
+            <div class="modal fade" id="modalEditar{{ aluno.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content shadow">
+                        <div class="modal-header border-0 pt-4 px-4">
+                            <h5 class="fw-bold m-0">Editar {{ aluno.nome }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form action="{{ url_for('alunos.editar_aluno', id=aluno.id) }}" method="POST">
+                                <div class="row g-3">
+                                    <div class="col-md-8"><label class="form-label fw-semibold">Nome
+                                            Completo</label><input type="text" name="nome" class="form-control"
+                                            value="{{ aluno.nome }}" required>
+                                    </div>
+                                    <div class="col-md-4"><label class="form-label fw-semibold">Origem</label><select
+                                            name="origem" class="form-select">
+                                            <option value="Auto Escola" {% if aluno.origem=='Auto Escola' %}selected{%
+                                                endif %}>
+                                                Auto Escola</option>
+                                            <option value="Detran" {% if aluno.origem=='Detran' %}selected{% endif %}>
+                                                Detran
+                                            </option>
+                                        </select></div>
+                                    <div class="col-md-4"><label class="form-label fw-semibold">CPF</label><input
+                                            type="text" name="cpf" class="form-control cpf_mask" value="{{ aluno.cpf }}"
+                                            required></div>
+                                    <div class="col-md-4"><label class="form-label fw-semibold">Contato</label><input
+                                            type="text" name="contato" class="form-control fone_mask"
+                                            value="{{ aluno.contato or '' }}"></div>
+                                    <div class="col-md-4"><label class="form-label fw-semibold">Tipo de
+                                            Processo</label><select name="tipo_processo"
+                                            class="form-select tipo-processo-edit" data-aluno-id="{{ aluno.id }}"
+                                            onchange="atualizarFormularioEdicao({{ aluno.id }})">
+                                            <option value="1ª Habilitação" {% if (aluno.tipo_processo
+                                                or '1ª Habilitação' )=='1ª Habilitação' %}selected{% endif %}>1ª
+                                                Habilitação</option>
+                                            <option value="Mudança de Categoria" {% if
+                                                aluno.tipo_processo=='Mudança de Categoria' %}selected{% endif %}>
+                                                Mudança de
+                                                Categoria</option>
+                                            <option value="Inclusão" {% if aluno.tipo_processo=='Inclusão' %}selected{%
+                                                endif %}>Inclusão</option>
+                                        </select></div>
+                                    <div class="col-md-4"><label class="form-label fw-semibold">Categoria</label><select
+                                            name="categoria" class="form-select categoria-edit"
+                                            id="categoria_edit_{{ aluno.id }}"
+                                            data-valor-atual="{{ aluno.categoria }}"></select></div>
+                                    <div class="col-md-4"><label class="form-label fw-semibold">Data de
+                                            Inscrição</label><input type="date" name="data_inscricao"
+                                            class="form-control"
+                                            value="{{ aluno.data_inscricao.strftime('%Y-%m-%d') if aluno.data_inscricao else '' }}">
+                                    </div>
+                                    <div class="col-md-4"><label class="form-label fw-semibold">Valor (R$)</label><input
+                                            type="text" name="valor" class="form-control money_mask" value="{{ "
+                                            {:,.2f}".format(aluno.valor_total or 0).replace(',', 'X' ).replace('.', ','
+                                            ).replace('X', '.' ) }}"></div>
+                                    <div class="col-md-4" id="grupo_horas_a_edit_{{ aluno.id }}"><label
+                                            class="form-label fw-semibold">Horas A</label><input type="number"
+                                            name="horas_a" id="horas_a_edit_{{ aluno.id }}" class="form-control"
+                                            value="{{ aluno.horas_a or 0 }}"></div>
+                                    <div class="col-md-4" id="grupo_horas_b_edit_{{ aluno.id }}"><label
+                                            class="form-label fw-semibold">Horas B</label><input type="number"
+                                            name="horas_b" id="horas_b_edit_{{ aluno.id }}" class="form-control"
+                                            value="{{ aluno.horas_b or 0 }}"></div>
+                                    <div class="col-md-4"><label class="form-label fw-semibold">Data da
+                                            Prova</label><input type="date" name="data_prova" class="form-control"
+                                            value="{{ aluno.data_prova.strftime('%Y-%m-%d') if aluno.data_prova else '' }}">
+                                    </div>
+                                    <div class="col-12"><label
+                                            class="form-label fw-semibold">Observações</label><textarea
+                                            name="observacoes" class="form-control"
+                                            rows="3">{{ aluno.observacoes or '' }}</textarea></div>
+                                </div>
+                                <div class="text-end mt-4"><button type="submit" class="btn btn-primary px-4"
+                                        style="background-color:#6c5ce7;border:none;">Salvar Alterações</button></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Modal Excluir #}
+            <div class="modal fade" id="modalExcluir{{ aluno.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content shadow">
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill"></i>
+                                Confirmar exclusão</h5><button type="button" class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-2">Deseja realmente excluir este aluno?</p>
+                            <div class="p-3 rounded bg-light border">
+                                <div><strong>Nome:</strong> {{ aluno.nome }}</div>
+                                <div><strong>CPF:</strong> {{ aluno.cpf }}</div>
+                                <div><strong>Processo:</strong> {{ aluno.tipo_processo or '1ª Habilitação' }}</div>
+                                <div><strong>Categoria:</strong> {{ aluno.categoria }}</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0"><button type="button" class="btn btn-light border"
+                                data-bs-dismiss="modal">Cancelar</button>
+                            <form action="{{ url_for('alunos.excluir_aluno', id=aluno.id) }}" method="POST" class="m-0">
+                                <button type="submit" class="btn btn-danger">Excluir</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not alunos %}
+    <div class="empty-dash" id="emptyDash">
+        <i class="bi bi-people"></i>
+        <p>Nenhum aluno ativo no momento.</p>
+        <button class="btn-dash btn-dash-primary" data-bs-toggle="modal" data-bs-target="#modalNovoAluno">
+            <i class="bi bi-plus-lg"></i> Cadastrar primeiro aluno
+        </button>
+    </div>
+    {% endif %}
+
+    {# Estado vazio da busca #}
+    <div class="empty-dash d-none" id="emptyBusca">
+        <i class="bi bi-search"></i>
+        <p>Nenhum aluno encontrado para esta busca.</p>
+    </div>
+</div>
+
+{# Modal Novo Aluno #}
+<div class="modal fade" id="modalNovoAluno" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header border-0 pt-4 px-4">
+                <h5 class="fw-bold m-0">Novo Cadastro</h5><button type="button" class="btn-close"
+                    data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{{ url_for('alunos.cadastrar_aluno') }}" method="POST" id="formNovoAluno">
+                    <div class="row g-3">
+                        <div class="col-md-8"><label class="form-label fw-semibold">Nome Completo</label><input
+                                type="text" name="nome" class="form-control" required></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Origem</label><select name="origem"
+                                class="form-select">
+                                <option value="Auto Escola">Auto Escola</option>
+                                <option value="Detran">Detran</option>
+                            </select></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">CPF</label><input type="text"
+                                name="cpf" class="form-control cpf_mask" required></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Contato</label><input type="text"
+                                name="contato" class="form-control fone_mask" placeholder="(00) 00000-0000"></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Tipo de Processo</label><select
+                                name="tipo_processo" id="select_tipo_processo" class="form-select"
+                                onchange="atualizarFormularioNovo()">
+                                <option value="1ª Habilitação" selected>1ª Habilitação</option>
+                                <option value="Mudança de Categoria">Mudança de Categoria</option>
+                                <option value="Inclusão">Inclusão</option>
+                            </select></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Categoria</label><select
+                                name="categoria" id="select_categoria" class="form-select"
+                                onchange="toggleHorasNovo()"></select></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Data de Inscrição</label><input
+                                type="date" name="data_inscricao" id="data_inscricao" class="form-control"
+                                value="{{ now_date }}" required></div>
+                        <hr class="my-3">
+                        <h6 class="fw-bold"><i class="bi bi-cash"></i> Pagamento</h6>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Forma</label><select
+                                name="forma_pagamento" id="forma_pagamento" class="form-select"
+                                onchange="togglePagamento()">
+                                <option value="a_vista">À Vista</option>
+                                <option value="parcelado">Parcelado</option>
+                            </select></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Valor Total (R$)</label><input
+                                type="text" name="valor" id="valor_total" class="form-control money_mask"
+                                placeholder="0,00"></div>
+                        <div class="col-md-4 secao-parcelado" style="display:none;"><label
+                                class="form-label fw-semibold">Entrada (R$)</label><input type="text"
+                                name="valor_entrada" id="valor_entrada" class="form-control money_mask" value="0,00">
+                        </div>
+                        <div class="col-md-4 secao-parcelado" style="display:none;"><label
+                                class="form-label fw-semibold">Qtd Parcelas</label><input type="number"
+                                name="qtd_parcelas" id="qtd_parcelas" class="form-control" value="1" min="1" max="12">
+                        </div>
+                        <div class="col-12 secao-parcelado" style="display:none;">
+                            <div class="alert alert-secondary py-2 mb-0" id="resumo_parcelas"
+                                style="font-size:0.85rem;">Aguardando valores...</div>
+                        </div>
+                        <div class="col-md-6 mt-3"><label class="form-label fw-semibold">Data da Prova</label><input
+                                type="date" name="data_prova" class="form-control"></div>
+                        <div class="col-12"><label class="form-label fw-semibold">Observações
+                                (Opcional)</label><textarea name="observacoes" id="observacoes_novo"
+                                class="form-control" rows="2" placeholder="Notas sobre o aluno..."></textarea></div>
+                        <div class="col-md-6" id="grupo_horas_a"><label class="form-label fw-semibold">Horas
+                                (Moto)</label><input type="number" name="horas_a" id="horas_a_novo" class="form-control"
+                                value="0"></div>
+                        <div class="col-md-6" id="grupo_horas_b"><label class="form-label fw-semibold">Horas
+                                (Carro)</label><input type="number" name="horas_b" id="horas_b_novo"
+                                class="form-control" value="0"></div>
+                    </div>
+                    <div class="text-end mt-4"><button type="submit" class="btn btn-primary px-5"
+                            style="background-color:#6c5ce7;border:none;">Finalizar Cadastro</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+    // Filtros por status
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const filtro = this.dataset.filtro;
+            document.querySelectorAll('.aluno-card').forEach(card => {
+                const status = card.dataset.status;
+                card.style.display = (filtro === 'todos' || status === filtro) ? '' : 'none';
+            });
+            verificarVazio();
+        });
+    });
+
+    // Busca por nome / CPF
+    document.getElementById('inputBusca').addEventListener('input', function () {
+        const q = this.value.toLowerCase().replace(/\D/g, '') || this.value.toLowerCase();
+        const filtroAtivo = document.querySelector('.filtro-btn.active').dataset.filtro;
+        document.querySelectorAll('.aluno-card').forEach(card => {
+            const nome = card.dataset.nome || '';
+            const cpf = card.dataset.cpf || '';
+            const status = card.dataset.status;
+            const matchQ = !this.value || nome.includes(this.value.toLowerCase()) || cpf.includes(q);
+            const matchF = filtroAtivo === 'todos' || status === filtroAtivo;
+            card.style.display = (matchQ && matchF) ? '' : 'none';
+        });
+        verificarVazio();
+    });
+
+    function verificarVazio() {
+        const visiveis = document.querySelectorAll('.aluno-card:not([style*="none"])').length;
+        const emptyBusca = document.getElementById('emptyBusca');
+        if (emptyBusca) emptyBusca.classList.toggle('d-none', visiveis > 0);
+    }
+</script>
+{% endblock %}

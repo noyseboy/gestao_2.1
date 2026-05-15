@@ -1,0 +1,18 @@
+.card-relatorio { border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background: white; margin-bottom: 20px; }
+.resumo-final { background-color: #2c3e50; color: white; border-radius: 12px; padding: 25px; margin-top: 20px; }
+.text-lucro { color: #2ecc71; font-size: 1.6rem; font-weight: 800; }
+.table thead th { background-color: #f1f3f5; color: #495057; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #dee2e6; font-size: 0.7rem; }
+.section-title { font-size: 0.9rem; font-weight: 700; color: #495057; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+.metric-label { opacity: 0.8; font-size: 0.85rem; }
+.metric-value { font-weight: 600; color: #fff; }
+
+@media print {
+    @page { size: A4 landscape; margin: 0.5cm; }
+    body { background-color: white !important; padding: 0 !important; }
+    .no-print { display: none !important; }
+    nav { display: none !important; }
+    .card-relatorio { box-shadow: none !important; border: 1px solid #eee !important; }
+    .resumo-final { background-color: #fff !important; color: #000 !important; border: 2px solid #2c3e50 !important; }
+    .text-lucro { color: #000 !important; }
+    .metric-value { color: #000 !important; }
+}
