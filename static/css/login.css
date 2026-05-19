@@ -1,0 +1,339 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+    background-size: 400% 400%;
+    animation: gradientShift 12s ease infinite;
+    overflow: hidden;
+    position: relative;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Floating shapes */
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.15;
+    animation: float linear infinite;
+    pointer-events: none;
+}
+
+.shape:nth-child(1) {
+    width: 300px; height: 300px;
+    background: #fff;
+    top: -80px; left: -80px;
+    animation-duration: 25s;
+}
+
+.shape:nth-child(2) {
+    width: 200px; height: 200px;
+    background: #fff;
+    bottom: -50px; right: -50px;
+    animation-duration: 20s;
+    animation-delay: -5s;
+}
+
+.shape:nth-child(3) {
+    width: 150px; height: 150px;
+    background: #fff;
+    top: 50%; left: 10%;
+    animation-duration: 30s;
+    animation-delay: -10s;
+}
+
+.shape:nth-child(4) {
+    width: 100px; height: 100px;
+    background: #fff;
+    bottom: 20%; right: 15%;
+    animation-duration: 22s;
+    animation-delay: -3s;
+    border-radius: 30%;
+}
+
+.shape:nth-child(5) {
+    width: 80px; height: 80px;
+    background: #fff;
+    top: 15%; right: 25%;
+    animation-duration: 18s;
+    animation-delay: -8s;
+    border-radius: 40%;
+}
+
+@keyframes float {
+    0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+    25% { transform: translate(30px, 40px) rotate(90deg) scale(1.1); }
+    50% { transform: translate(-20px, 80px) rotate(180deg) scale(0.9); }
+    75% { transform: translate(40px, 20px) rotate(270deg) scale(1.05); }
+    100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+}
+
+/* Card animations */
+.login-wrapper {
+    animation: containerFadeIn 0.8s ease forwards;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding-top: 40px;
+}
+
+.login-wrapper > .row {
+    width: 100%;
+    margin: 0;
+}
+
+@keyframes containerFadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-card {
+    border: none;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.15),
+        0 1px 3px rgba(0, 0, 0, 0.05);
+    animation: cardEntrance 0.8s ease 0.2s both;
+}
+
+@keyframes cardEntrance {
+    from { opacity: 0; transform: translateY(40px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Brand / Logo */
+.brand-icon {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 24px;
+    color: #fff;
+    animation: floatIcon 3s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.brand-title {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin: 0;
+}
+
+.brand-subtitle {
+    color: #a0aec0;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+/* Form elements staggered entrance */
+.form-group-anim {
+    animation: fadeSlideUp 0.6s ease both;
+}
+
+.form-group-anim:nth-child(1) { animation-delay: 0.35s; }
+.form-group-anim:nth-child(2) { animation-delay: 0.45s; }
+.form-group-anim:nth-child(3) { animation-delay: 0.55s; }
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+
+.form-control {
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    background: #f7fafc;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.95rem;
+}
+
+.form-control::placeholder {
+    color: #cbd5e0;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    background: #fff;
+}
+
+/* Input icon */
+.input-group-custom {
+    position: relative;
+}
+
+.input-group-custom .form-control {
+    padding-left: 44px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+    font-size: 1.1rem;
+    pointer-events: none;
+    transition: color 0.3s ease;
+}
+
+.form-control:focus ~ .input-icon {
+    color: #667eea;
+}
+
+/* Button */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.btn-primary:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+/* Spinner on loading */
+.btn-spinner {
+    display: none;
+    width: 20px; height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.btn-primary.loading .btn-spinner {
+    display: inline-block;
+}
+
+.btn-primary.loading .btn-text {
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Forgot password link */
+.forgot-link {
+    color: #a0aec0;
+    font-size: 0.85rem;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+.forgot-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0;
+    width: 0; height: 1px;
+    background: #667eea;
+    transition: width 0.3s ease;
+}
+
+.forgot-link:hover {
+    color: #667eea;
+}
+
+.forgot-link:hover::after {
+    width: 100%;
+}
+
+/* Footer */
+.footer-text {
+    animation: fadeSlideUp 0.6s ease 0.65s both;
+}
+
+.footer-text small {
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.footer-text small:hover {
+    opacity: 1;
+}
+
+/* Alert animation */
+.alert {
+    animation: alertSlideIn 0.4s ease both;
+}
+
+@keyframes alertSlideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .container { padding: 16px; }
+
+    .login-card { border-radius: 20px; padding: 24px !important; }
+
+    .shape { display: none; }
+}
