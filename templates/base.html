@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CFC Gestão{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold" href="{% if session.get('role') == 'instrutor' %}{{ url_for('treinamento.treinamento') }}{% else %}{{ url_for('alunos.dashboard') }}{% endif %}">CFC GESTÃO</a>
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 mt-3 mt-lg-0 gap-2">
+                {% if session.get('role') != 'instrutor' %}
+                <a href="{{ url_for('alunos.dashboard') }}"
+                   class="nav-link-custom nav-link {% if request.endpoint == 'alunos.dashboard' %}nav-link-active{% endif %}">Ativos</a>
+                <a href="{{ url_for('alunos.historico') }}"
+                   class="nav-link-custom nav-link {% if request.endpoint == 'alunos.historico' %}nav-link-active{% endif %}">Concluídos</a>
+                <a href="{{ url_for('alunos.buscar') }}"
+                   class="nav-link-custom nav-link {% if request.endpoint == 'alunos.buscar' or request.endpoint == 'alunos.perfil_aluno' %}nav-link-active{% endif %}">
+                    <i class="bi bi-person-search"></i> Buscar Aluno
+                </a>
+                {% endif %}
+                <a href="{{ url_for('treinamento.treinamento') }}"
+                   class="nav-link-custom nav-link {% if request.endpoint == 'treinamento.treinamento' %}nav-link-active{% endif %}">
+                    <i class="bi bi-person-video3"></i> Em Treinamento
+                </a>
+                {% if session.get('role') != 'instrutor' %}
+                <a href="{{ url_for('parcelas.gestao_parcelas') }}"
+                   class="nav-link-custom nav-link {% if request.endpoint == 'parcelas.gestao_parcelas' %}nav-link-active{% endif %}">
+                    <i class="bi bi-calendar-check"></i> Parcelas
+                </a>
+                <a href="{{ url_for('financeiro.financeiro') }}"
+                   class="nav-link-custom nav-link {% if request.endpoint in ['financeiro.financeiro', 'financeiro.relatorio_mensal'] %}nav-link-active{% endif %}">
+                    <i class="bi bi-cash-stack"></i> Financeiro
+                </a>
+                {% endif %}
+            </div>
+            <div class="d-flex align-items-center text-white mt-3 mt-lg-0 border-top border-light border-opacity-25 pt-3 pt-lg-0 border-lg-0">
+                <span class="me-3">Olá, <strong>{{ session.get('usuario_logado', '') }}</strong></span>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm ms-auto ms-lg-0">Sair</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

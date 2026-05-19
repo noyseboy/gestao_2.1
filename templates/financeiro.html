@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}CFC Gestão - Financeiro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/financeiro.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="mb-5">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-7">
+            <h2 class="fw-bold m-0">Resumo Financeiro</h2>
+            <p class="text-muted mb-0">Monitoramento de receita e fluxo de parcelas</p>
+        </div>
+        <div class="col-md-5 text-end">
+            <div class="filter-section shadow-sm">
+                <form action="{{ url_for('financeiro.financeiro') }}" method="GET" class="row g-2 align-items-center">
+                    <div class="col-auto"><i class="bi bi-calendar3 text-muted"></i></div>
+                    <div class="col-auto">
+                        <select name="mes" class="form-select form-select-sm border-0 bg-light">
+                            {% set meses_lista = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] %}
+                            {% for i in range(1, 13) %}
+                                <option value="{{ i }}" {{ 'selected' if i == mes_atual else '' }}>{{ meses_lista[i-1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <input type="number" name="ano" class="form-control form-select-sm border-0 bg-light" value="{{ ano_atual }}" style="width: 85px;">
+                    </div>
+                    <div class="col-auto border-start ps-2">
+                        <button type="submit" class="btn btn-dark btn-sm rounded-circle"><i class="bi bi-search"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card card-financeiro bg-indigo text-white p-4">
+                <small class="opacity-75 text-uppercase text-xs">Total Geral em Caixa</small>
+                <h2 class="fw-bold m-0 mt-1">R$ {{ "{:,.2f}".format(total_geral or 0).replace(",","X").replace(".",",").replace("X",".") }}</h2>
+                <i class="bi bi-bank card-icon text-white"></i>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-financeiro bg-emerald text-white p-4">
+                <small class="opacity-75 text-uppercase text-xs">Receita Auto Escola</small>
+                <h2 class="fw-bold m-0 mt-1">R$ {{ "{:,.2f}".format(soma_ae or 0).replace(",","X").replace(".",",").replace("X",".") }}</h2>
+                <i class="bi bi-cash-stack card-icon text-white"></i>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-financeiro bg-slate-custom text-white p-4">
+                <small class="opacity-75 text-uppercase text-xs">Receita Detran</small>
+                <h2 class="fw-bold m-0 mt-1">R$ {{ "{:,.2f}".format(soma_detran or 0).replace(",","X").replace(".",",").replace("X",".") }}</h2>
+                <i class="bi bi-ticket-perforated card-icon text-white"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-8">
+            <div class="card card-financeiro bg-dark text-white p-3">
+                <div class="row align-items-center">
+                    <div class="col-6 border-end border-secondary">
+                        <small class="text-warning text-uppercase text-xs">Soma de Parcelas Pagas</small>
+                        <h3 class="fw-bold m-0 text-warning">R$ {{ "{:,.2f}".format(valor_parcelas_pagas or 0).replace(",","X").replace(".",",").replace("X",".") }}</h3>
+                    </div>
+                    <div class="col-6 ps-4">
+                        <small class="opacity-75 text-uppercase text-xs">Volume de Parcelas</small>
+                        <h3 class="fw-bold m-0">{{ qtd_parcelas_pagas }} <small class="fs-6 opacity-50">unid.</small></h3>
+                    </div>
+                </div>
+                <i class="bi bi-check-circle card-icon text-white"></i>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-financeiro bg-white border p-3 border-danger">
+                <small class="text-danger text-uppercase text-xs">Pendente (Vencem no Mês)</small>
+                <h4 class="fw-bold m-0 text-danger">R$ {{ "{:,.2f}".format(total_pendente or 0).replace(",","X").replace(".",",").replace("X",".") }}</h4>
+                <i class="bi bi-clock-history card-icon text-danger" style="font-size: 2.5rem;"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold m-0"><i class="bi bi-person-plus me-2 text-indigo"></i>Novos Alunos por Categoria</h5>
+            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">Total: {{ total_alunos }} Matrículas</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Processo</th>
+                        <th>Categoria</th>
+                        <th class="text-center">Qtd</th>
+                        <th class="text-end">Participação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="table-light"><td colspan="4" class="text-xs text-muted">1ª HABILITAÇÃO</td></tr>
+                    <tr>
+                        <td>1ª Habilitação</td>
+                        <td><span class="badge rounded-pill bg-secondary px-3">Cat. A</span></td>
+                        <td class="text-center fw-bold">{{ hab_a }}</td>
+                        <td class="text-end text-muted">{{ "%.1f"|format((hab_a / total_alunos) * 100) if total_alunos > 0 else "0.0" }}%</td>
+                    </tr>
+                    <tr>
+                        <td>1ª Habilitação</td>
+                        <td><span class="badge rounded-pill bg-secondary px-3">Cat. B</span></td>
+                        <td class="text-center fw-bold">{{ hab_b }}</td>
+                        <td class="text-end text-muted">{{ "%.1f"|format((hab_b / total_alunos) * 100) if total_alunos > 0 else "0.0" }}%</td>
+                    </tr>
+                    <tr>
+                        <td>1ª Habilitação</td>
+                        <td><span class="badge rounded-pill bg-secondary px-3">Cat. AB</span></td>
+                        <td class="text-center fw-bold">{{ hab_ab }}</td>
+                        <td class="text-end text-muted">{{ "%.1f"|format((hab_ab / total_alunos) * 100) if total_alunos > 0 else "0.0" }}%</td>
+                    </tr>
+                    <tr class="table-light"><td colspan="4" class="text-xs text-muted">INCLUSÃO DE CATEGORIA</td></tr>
+                    <tr>
+                        <td>Inclusão</td>
+                        <td><span class="badge rounded-pill bg-warning text-dark px-3">Cat. A</span></td>
+                        <td class="text-center fw-bold">{{ inc_a }}</td>
+                        <td class="text-end text-muted">{{ "%.1f"|format((inc_a / total_alunos) * 100) if total_alunos > 0 else "0.0" }}%</td>
+                    </tr>
+                    <tr>
+                        <td>Inclusão</td>
+                        <td><span class="badge rounded-pill bg-warning text-dark px-3">Cat. B</span></td>
+                        <td class="text-center fw-bold">{{ inc_b }}</td>
+                        <td class="text-end text-muted">{{ "%.1f"|format((inc_b / total_alunos) * 100) if total_alunos > 0 else "0.0" }}%</td>
+                    </tr>
+                    <tr class="table-light"><td colspan="4" class="text-xs text-muted">MUDANÇA DE CATEGORIA</td></tr>
+                    <tr>
+                        <td>Mudança Profissional</td>
+                        <td><span class="badge rounded-pill bg-dark px-3">Cat. D</span></td>
+                        <td class="text-center fw-bold">{{ mud_d }}</td>
+                        <td class="text-end text-muted">{{ "%.1f"|format((mud_d / total_alunos) * 100) if total_alunos > 0 else "0.0" }}%</td>
+                    </tr>
+                    <tr>
+                        <td>Outras (C/E)</td>
+                        <td><span class="badge rounded-pill bg-outline-dark border px-3">Cat. C / E</span></td>
+                        <td class="text-center fw-bold">{{ mud_c + mud_e }}</td>
+                        <td class="text-end text-muted">{{ "%.1f"|format(((mud_c + mud_e) / total_alunos) * 100) if total_alunos > 0 else "0.0" }}%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

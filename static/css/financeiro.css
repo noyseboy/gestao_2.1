@@ -1,0 +1,17 @@
+.card-financeiro {
+    border: none;
+    border-radius: 16px;
+    transition: transform 0.2s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.card-financeiro:hover { transform: translateY(-3px); }
+.card-icon { position: absolute; right: -5px; bottom: -10px; font-size: 3.5rem; opacity: 0.12; }
+.table-container { background: white; border-radius: 16px; padding: 30px; border: 1px solid #e2e8f0; }
+.table thead th { background-color: #f8fafc; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b; border-top: none; }
+.filter-section { background: white; border-radius: 12px; padding: 8px 15px; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; }
+.text-xs { font-size: 0.75rem; font-weight: 600; }
+.bg-indigo { background-color: #6366f1 !important; }
+.bg-emerald { background-color: #10b981 !important; }
+.bg-slate-custom { background-color: #334155 !important; }
